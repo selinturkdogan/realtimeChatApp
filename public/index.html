@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Özel Mesajlaşma Chat</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="welcome-modal" id="welcomeModal">
+    <div class="welcome-content">
+      <h2>Welcome!</h2>
+      <p>Please enter your name to join:</p>
+      <input type="text" id="nameInput" class="name-input" placeholder="Name" />
+      <button id="joinBtn" class="join-button">Join</button>
+    </div>
+  </div>
+
+  <div class="chat-container" style="display:none;">
+    
+    
+    <div class="chat-main">
+      <div class="chat-header">
+        <h2 id="chatWith">Choose chat</h2>
+      </div>
+      <ul id="messages" class="messages-container"></ul>
+      <div class="input-container">
+        <form id="inputForm" class="input-form">
+          <input type="text" id="input" autocomplete="off" placeholder="write a message..." />
+          <button type="submit" class="send-button">&#9658;</button>
+        </form>
+      </div>
+    </div>
+    <div class="chat-sidebar">
+      <h3>Online Users</h3>
+      <ul id="usersList"></ul>
+    </div>
+  </div>
+
+<script>
+  let socket;
+  let myName = null;
+  let activeChatId = null;
+
+  const welcomeModal = document.getElementById('welcomeModal');
+  const nameInput = document.getElementById('nameInput');
+  const joinBtn = document.getElementById('joinBtn');
+  const chatContainer = document.querySelector('.chat-container');
+  const usersList = document.getElementById('usersList');
+  const messagesList = document.getElementById('messages');
+  const chatWith = document.getElementById('chatWith');
+  const inputForm = document.getElementById('inputForm');
+  const input = document.getElementById('input');
+
+  // Kullanıcılar: id => name
+  const users = new Map();
+
+  // Mesaj geçmişi: id => [{from, text, timestamp, own}]
+  const chatHistories = new Map();
+
+  joinBtn.onclick = () => {
+    const name = nameInput.value.trim();
+    if (!name) return alert('Please enter a name.');
+
+    myName = name;
+    socket = io({ query: { name } });
+
+    welcomeModal.style.display = 'none';
+    chatContainer.style.display = 'flex';
+
+    socket.on('user list', (userArray) => {
+      users.clear();
+      userArray.forEach(u => {
+        if (u.id !== socket.id) users.set(u.id, u.name);
+      });
+      renderUserList();
+    });
+
+    socket.on('private message', ({ from, text, timestamp, own }) => {
+      // Server'dan gelen kendi mesajını tekrar ekleme
+      if (own) return;
+
+      // Gönderenin ID'sini bul
+      const senderId = [...users.entries()].find(([id, n]) => n === from)?.[0];
+      if (!senderId) return;
+
+      if (!chatHistories.has(senderId)) chatHistories.set(senderId, []);
+      chatHistories.get(senderId).push({ from, text, timestamp, own: false });
+
+      if (activeChatId === senderId) {
+        addMessage({ from, text, timestamp, own: false });
+      }
+    });
+  };
+
+  function renderUserList() {
+    usersList.innerHTML = '';
+    users.forEach((name, id) => {
+      const li = document.createElement('li');
+      li.textContent = name;
+      li.dataset.id = id;
+      li.className = (activeChatId === id) ? 'active-user' : '';
+      li.onclick = () => openChat(id, name);
+      usersList.appendChild(li);
+    });
+  }
+
+  function openChat(id, name) {
+    activeChatId = id;
+    chatWith.textContent = name;
+    renderUserList();
+    renderMessages();
+  }
+
+  function renderMessages() {
+    messagesList.innerHTML = '';
+    const history = chatHistories.get(activeChatId) || [];
+    history.forEach(msg => addMessage(msg));
+    messagesList.scrollTop = messagesList.scrollHeight;
+  }
+
+  function addMessage({ from, text, timestamp, own }) {
+    const li = document.createElement('li');
+    li.className = 'message ' + (own ? 'own' : '');
+
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.textContent = from.charAt(0).toUpperCase();
+
+    const content = document.createElement('div');
+    content.className = 'message-content';
+
+    const sender = document.createElement('div');
+    sender.className = 'message-sender';
+    sender.textContent = from;
+
+    const messageText = document.createElement('div');
+    messageText.className = 'message-text';
+    messageText.textContent = text;
+
+    const time = document.createElement('div');
+    time.className = 'message-time';
+    time.textContent = new Date(timestamp).toLocaleTimeString();
+
+    content.appendChild(sender);
+    content.appendChild(messageText);
+    content.appendChild(time);
+
+    li.appendChild(avatar);
+    li.appendChild(content);
+
+    messagesList.appendChild(li);
+    messagesList.scrollTop = messagesList.scrollHeight;
+  }
+
+  inputForm.onsubmit = (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    if (!activeChatId) return alert('Please first select the user you will chat with.');
+
+    const timestamp = new Date();
+
+    // Mesajı kendi ekranına hemen ekle
+    if (!chatHistories.has(activeChatId)) chatHistories.set(activeChatId, []);
+    chatHistories.get(activeChatId).push({ from: myName, text, timestamp, own: true });
+    addMessage({ from: myName, text, timestamp, own: true });
+
+    // Mesajı server'a gönder
+    socket.emit('private message', { to: activeChatId, text });
+    input.value = '';
+  };
+</script>
+</body>
+</html>
