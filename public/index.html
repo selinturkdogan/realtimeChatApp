@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Özel Mesajlaşma Chat</title>
+  <title>ChatApp</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -18,13 +18,13 @@
   </div>
 
   <div class="chat-container" style="display:none;">
-    
-    
     <div class="chat-main">
       <div class="chat-header">
         <h2 id="chatWith">Choose chat</h2>
       </div>
       <ul id="messages" class="messages-container"></ul>
+      <!-- Typing göstergesi -->
+      <div id="typingIndicator" class="typing-indicator" style="display:none;"></div>
       <div class="input-container">
         <form id="inputForm" class="input-form">
           <input type="text" id="input" autocomplete="off" placeholder="write a message..." />
@@ -52,13 +52,14 @@
   const chatWith = document.getElementById('chatWith');
   const inputForm = document.getElementById('inputForm');
   const input = document.getElementById('input');
+  const typingIndicator = document.getElementById('typingIndicator');
 
-  // Kullanıcılar: id => name
   const users = new Map();
 
   // Mesaj geçmişi: id => [{from, text, timestamp, own}]
   const chatHistories = new Map();
 
+  //Kullanıcı adı ile bağlanma
   joinBtn.onclick = () => {
     const name = nameInput.value.trim();
     if (!name) return alert('Please enter a name.');
@@ -69,6 +70,7 @@
     welcomeModal.style.display = 'none';
     chatContainer.style.display = 'flex';
 
+    //Kullanıcı listesi güncelleme
     socket.on('user list', (userArray) => {
       users.clear();
       userArray.forEach(u => {
@@ -77,11 +79,10 @@
       renderUserList();
     });
 
+    //Özel mesaj alma
     socket.on('private message', ({ from, text, timestamp, own }) => {
-      // Server'dan gelen kendi mesajını tekrar ekleme
       if (own) return;
 
-      // Gönderenin ID'sini bul
       const senderId = [...users.entries()].find(([id, n]) => n === from)?.[0];
       if (!senderId) return;
 
@@ -92,8 +93,20 @@
         addMessage({ from, text, timestamp, own: false });
       }
     });
+
+    // TYPING eventini dinle
+    socket.on('typing', ({ from, typing }) => {
+      const senderId = [...users.entries()].find(([id, n]) => n === from)?.[0];
+      if (typing && activeChatId === senderId) {
+        typingIndicator.textContent = `${from} is typing`;
+        typingIndicator.style.display = 'block';
+      } else {
+        typingIndicator.style.display = 'none';
+      }
+    });
   };
 
+  //Kullanıcı listesini gösterme
   function renderUserList() {
     usersList.innerHTML = '';
     users.forEach((name, id) => {
@@ -106,13 +119,16 @@
     });
   }
 
+  //Sohbet açma
   function openChat(id, name) {
     activeChatId = id;
     chatWith.textContent = name;
+    typingIndicator.style.display = 'none'; // Sohbet açılır açılmaz typing göstergesini gizle
     renderUserList();
     renderMessages();
   }
 
+  //Mesajları ekrana yazdırma
   function renderMessages() {
     messagesList.innerHTML = '';
     const history = chatHistories.get(activeChatId) || [];
@@ -120,6 +136,7 @@
     messagesList.scrollTop = messagesList.scrollHeight;
   }
 
+  //Mesaj elemanı oluşturma
   function addMessage({ from, text, timestamp, own }) {
     const li = document.createElement('li');
     li.className = 'message ' + (own ? 'own' : '');
@@ -154,6 +171,13 @@
     messagesList.scrollTop = messagesList.scrollHeight;
   }
 
+  // Yazarken typing event gönder
+  input.addEventListener('input', () => {
+    if (!activeChatId) return;
+    socket.emit('typing', { to: activeChatId, typing: input.value.length > 0 });
+  });
+
+  //Mesaj gönderme
   inputForm.onsubmit = (e) => {
     e.preventDefault();
     const text = input.value.trim();
@@ -162,14 +186,15 @@
 
     const timestamp = new Date();
 
-    // Mesajı kendi ekranına hemen ekle
     if (!chatHistories.has(activeChatId)) chatHistories.set(activeChatId, []);
     chatHistories.get(activeChatId).push({ from: myName, text, timestamp, own: true });
     addMessage({ from: myName, text, timestamp, own: true });
 
-    // Mesajı server'a gönder
     socket.emit('private message', { to: activeChatId, text });
     input.value = '';
+
+    // Mesaj gönderildikten sonra typing göstergesini kapat
+    socket.emit('typing', { to: activeChatId, typing: false });
   };
 </script>
 </body>

@@ -394,3 +394,35 @@ body {
     padding: 15px;
   }
 }
+
+.typing-indicator {
+  font-style: italic;
+  color: #555;
+  margin: 8px 15px;
+  min-height: 24px;
+  font-size: 1em;
+  font-weight: 500;
+  background: #f0f0f0;
+  border-radius: 12px;
+  padding: 6px 12px;
+  width: fit-content;
+  max-width: 80%;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  user-select: none;
+  display: inline-block;
+  position: relative;
+}
+
+.typing-indicator::after {
+  content: '...';
+  animation: blink 1.4s infinite;
+  font-weight: 700;
+  color: #888;
+  margin-left: 4px;
+}
+
+@keyframes blink {
+  0%, 20% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}

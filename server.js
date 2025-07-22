@@ -7,50 +7,53 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-//expresste public klasörü statik dosya sunucu olarak ayarlanır
+// Statik dosyalar
 app.use(express.static(path.join(__dirname, 'public')));
 
-const connectedUsers = new Map(); //bağlı kullanıcıları takip etmek için Map oluşturur
+const connectedUsers = new Map();
 
 function broadcastUserList() {
   const users = Array.from(connectedUsers.entries()).map(([id, name]) => ({ id, name }));
-  io.emit('user list', users); //io.emit() ile bu liste tüm bağlı istemcilere yayınlanır
-  }
+  io.emit('user list', users);
+}
 
 io.on('connection', (socket) => {
   const name = socket.handshake.query.name;
   connectedUsers.set(socket.id, name);
 
   console.log(`${name} connected`);
-  broadcastUserList(); //tüm kullanıcılara güncel user listesini gönderir
+  broadcastUserList();
+
+  // TYPING eventi dinle ve karşı kullanıcıya gönder
+  socket.on('typing', ({ to, typing }) => {
+    io.to(to).emit('typing', { from: connectedUsers.get(socket.id), typing });
+  });
 
   socket.on('private message', ({ to, text }) => {
-    const from = connectedUsers.get(socket.id); //mesaji gönderen kullanicinin ismini alir
-    const timestamp = new Date(); //mesajin gönderildiği zamanı alır
+    const from = connectedUsers.get(socket.id);
+    const timestamp = new Date();
 
-    io.to(to).emit('private message', { //mesajı to idsine sahip kullanıcıya gönderir
+    io.to(to).emit('private message', {
       from,
       text,
       timestamp
     });
 
-    socket.emit('private message', { //mesajı gönderen kullanıcıya da aynı mesajı tekrar gönderir 
+    socket.emit('private message', {
       from,
       text,
       timestamp,
-      own: true //mesajın gönderene ait olduğunu belirtir
+      own: true
     });
   });
 
-  //kullanıcı bağlantısını kestiğinde
   socket.on('disconnect', () => {
     console.log(`${connectedUsers.get(socket.id)} disconnected`);
-    connectedUsers.delete(socket.id); //kullanıcı connectedUsers dan silinir
-    broadcastUserList(); //güncellenen listeyi tüm istemcilere gönderir
+    connectedUsers.delete(socket.id);
+    broadcastUserList();
   });
 });
 
-//Anasayfa  (/) isteği
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
