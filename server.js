@@ -95,7 +95,6 @@ io.on('connection', (socket) => { //yeni bir kullanıcı bağlandığında bu fo
     });
   });
 
-  // Grup mesajı 
 // Grup mesajı
 socket.on('group message', ({ groupId, text }) => {
   const group = groups.get(groupId);
@@ -112,7 +111,6 @@ socket.on('group message', ({ groupId, text }) => {
     }
   });
 });
-
 
   socket.on('disconnect', () => { //bağlantı kesilirse
     console.log(`${connectedUsers.get(socket.id)} disconnected`);
