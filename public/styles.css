@@ -1,3 +1,67 @@
+/* Tema değişkenleri */
+:root {
+  /* Varsayılan tema (mevcut tasarım) */
+  --bg-main: #fff5f7;
+  --bg-accent: #ffbccc;
+  --bg-secondary: #fff0f3;
+  --bg-sidebar: #ffe5ec;
+  --text-primary: #6b2641;
+  --text-secondary: #943654;
+  --text-light: #c48798;
+  --gradient-primary: linear-gradient(135deg, #6b2641 0%, #d1516e 100%);
+  --gradient-secondary: linear-gradient(135deg, #943654 0%, #ff829c 100%);
+  --border-color: #f5dbe3;
+  --online-color: #4ade80;
+  --shadow-color: rgba(255, 131, 155, 0.4);
+}
+.theme-dark {
+  --bg-main: #000000;          
+  --bg-accent: #43596a;       
+  --bg-secondary: #32404d;     
+  --bg-sidebar: #212932;       
+  --text-primary: #e8fdff;     
+  --text-secondary: #b0e0e6;   
+  --text-light: #87ceeb;       
+  --gradient-primary: linear-gradient(135deg, #11151a 0%, #32404d 100%); /* color2 → color4 */
+  --gradient-secondary: linear-gradient(135deg, #212932 0%, #43596a 100%);
+  --border-color: #43596a;     
+  --online-color: #00ced1;     
+  --shadow-color: rgba(17, 21, 26, 0.6); 
+}
+
+.theme-sunset {
+  --bg-main: #ffeeff;
+  --bg-accent: #ffb0ee;
+  --bg-secondary: #fff5ff;
+  --bg-sidebar: #ffe5ff;
+  --text-primary: #283153;
+  --text-secondary: #514370;
+  --text-light: #7b68a0;
+  --gradient-primary: linear-gradient(135deg, #514370 0%, #8d5e96 100%);
+  --gradient-secondary: linear-gradient(135deg, #8d5e96 0%, #df81c2 100%);
+  --border-color: #e6ccf0;
+  --online-color: #da70d6;
+  --shadow-color: rgba(141, 94, 150, 0.4);
+}
+
+.theme-nature {
+  --bg-main: #f6f6e8; 
+  --bg-accent: #d8dec1; 
+  --bg-secondary: #d8dec1; 
+  --bg-sidebar: #e3e9ce;
+  --text-primary: #37704d;
+  --text-secondary: #7c996e; 
+  --text-light: #b7ba96;
+
+  --gradient-primary: linear-gradient(135deg, #37704d 0%, #7c996e 100%);
+  --gradient-secondary: linear-gradient(135deg, #7c996e 0%, #d8dec1 100%);
+
+  --border-color: #d8dec1; 
+  --online-color: #37704d; 
+  --shadow-color: rgba(55, 112, 77, 0.25); 
+}
+
+
 * {
   margin: 0;
   padding: 0;
@@ -6,14 +70,14 @@
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #6b2641 0%, #d1516e 100%);
+  background: var(--gradient-primary);
   height: 100vh;
   margin: 0;
   padding: 0;
 }
 
 .chat-header {
-  background: linear-gradient(135deg, #6b2641 0%, #d1516e 100%);
+  background: var(--gradient-primary);
   color: white;
   padding: 20px 30px;
   display: flex;
@@ -49,7 +113,7 @@ body {
 .online-dot {
   width: 8px;
   height: 8px;
-  background: #4ade80;
+  background: var(--online-color);
   border-radius: 50%;
   animation: pulse 2s infinite;
 }
@@ -68,7 +132,7 @@ body {
   margin: 20px auto;
   border-radius: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-  background: #fff5f7;
+  background: var(--bg-main);
   overflow: hidden;
 }
 
@@ -77,13 +141,13 @@ body {
   display: flex;
   flex-direction: column;
   order: 1;
-  border-right: 1px solid #f5dbe3;
+  border-right: 1px solid var(--border-color);
 }
 
 .messages-container {
   flex: 1;
   padding: 20px;
-  background: #fff0f3;
+  background: var(--bg-secondary);
   overflow-y: auto;
   list-style: none;
 }
@@ -92,10 +156,10 @@ body {
   width: 6px;
 }
 .messages-container::-webkit-scrollbar-track {
-  background: #ffe5ec;
+  background: var(--bg-sidebar);
 }
 .messages-container::-webkit-scrollbar-thumb {
-  background: #ffbccc;
+  background: var(--bg-accent);
   border-radius: 3px;
 }
 
@@ -129,11 +193,11 @@ body {
   color: white;
   font-size: 14px;
   flex-shrink: 0;
-  background: #943654;
+  background: var(--text-secondary);
 }
 
 .message.own .message-avatar {
-  background: #ff829c;
+  background: var(--bg-accent);
 }
 
 .message-content {
@@ -144,18 +208,18 @@ body {
   max-width: 100%;
   word-wrap: break-word;
   position: relative;
-  color: #6b2641;
+  color: var(--text-primary);
 }
 
 .message.own .message-content {
-  background: linear-gradient(135deg, #943654 0%, #ff829c 100%);
+  background: var(--gradient-secondary);
   color: white;
 }
 
 .message-sender {
   font-weight: 600;
   font-size: 13px;
-  color: #943654;
+  color: var(--text-secondary);
   margin-bottom: 4px;
 }
 
@@ -177,18 +241,18 @@ body {
 
 .system-message {
   text-align: center;
-  color: #943654;
+  color: var(--text-secondary);
   font-size: 13px;
   padding: 8px 16px;
-  background: rgba(255, 131, 155, 0.1);
+  background: color-mix(in srgb, var(--text-secondary) 10%, transparent);
   border-radius: 20px;
   margin: 10px auto;
   max-width: fit-content;
 }
 
 .system-message.join {
-  color: #4caf50;
-  background: rgba(76, 175, 80, 0.1);
+  color: var(--online-color);
+  background: color-mix(in srgb, var(--online-color) 10%, transparent);
 }
 
 .system-message.leave {
@@ -198,23 +262,23 @@ body {
 
 .input-container {
   padding: 20px 30px;
-  background: #ffbccc;
-  border-top: 1px solid #f5dbe3;
+  background: var(--bg-accent);
+  border-top: 1px solid var(--border-color);
 }
 
 .input-form {
   display: flex;
   gap: 10px;
-  background: #ffe5ec;
+  background: var(--bg-sidebar);
   padding: 12px 20px;
   border-radius: 25px;
   transition: all 0.3s ease;
 }
 
 .input-form:focus-within {
-  background: #fff0f3;
+  background: var(--bg-secondary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 131, 155, 0.4);
+  box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 #input {
@@ -224,15 +288,15 @@ body {
   font-size: 15px;
   padding: 8px 0;
   outline: none;
-  color: #6b2641;
+  color: var(--text-primary);
 }
 
 #input::placeholder {
-  color: #c48798;
+  color: var(--text-light);
 }
 
 .send-button {
-  background: linear-gradient(135deg, #943654 0%, #ff829c 100%);
+  background: var(--gradient-secondary);
   color: white;
   border: none;
   width: 44px;
@@ -249,7 +313,7 @@ body {
 
 .send-button:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(255, 131, 155, 0.3);
+  box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 .send-button:active {
@@ -263,7 +327,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(209, 81, 110, 0.4);
+  background: color-mix(in srgb, var(--text-secondary) 40%, transparent);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -281,13 +345,13 @@ body {
 }
 
 .welcome-content h2 {
-  color: #943654;
+  color: var(--text-secondary);
   margin-bottom: 20px;
   font-size: 28px;
 }
 
 .welcome-content p {
-  color: #d1516e;
+  color: var(--text-primary);
   margin-bottom: 30px;
   font-size: 16px;
 }
@@ -295,7 +359,7 @@ body {
 .name-input {
   width: 100%;
   padding: 15px;
-  border: 2px solid #f5dbe3;
+  border: 2px solid var(--border-color);
   border-radius: 12px;
   font-size: 16px;
   margin-bottom: 20px;
@@ -304,11 +368,11 @@ body {
 }
 
 .name-input:focus {
-  border-color: #ff829c;
+  border-color: var(--bg-accent);
 }
 
 .join-button {
-  background: linear-gradient(135deg, #943654 0%, #ff829c 100%);
+  background: var(--gradient-secondary);
   color: white;
   border: none;
   padding: 15px 30px;
@@ -321,14 +385,14 @@ body {
 
 .join-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 131, 155, 0.3);
+  box-shadow: 0 8px 20px var(--shadow-color);
 }
 
 .chat-sidebar {
   width: 250px;
-  background: #ffe5ec;
+  background: var(--bg-sidebar);
   padding: 20px;
-  border-left: 1px solid #f5dbe3;
+  border-left: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -336,7 +400,7 @@ body {
 
 .chat-sidebar h3 {
   font-weight: 600;
-  color: #943654;
+  color: var(--text-secondary);
   margin-bottom: 15px;
 }
 
@@ -356,18 +420,18 @@ body {
   border-radius: 10px;
   background: #fff;
   font-weight: 600;
-  color: #943654;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .chat-sidebar ul li:hover {
-  background: linear-gradient(135deg, #943654 0%, #ff829c 100%);
+  background: var(--gradient-secondary);
   color: white;
 }
 
 .chat-sidebar ul li.active-user {
-  background: linear-gradient(135deg, #943654 0%, #ff829c 100%);
+  background: var(--gradient-secondary);
   color: white;
 }
 
@@ -427,8 +491,6 @@ body {
   100% { opacity: 0; }
 }
 
-/* Previous CSS remains the same, add these new styles */
-
 /* Grup modalı */
 .modal {
   position: fixed;
@@ -453,7 +515,7 @@ body {
 }
 
 .modal-content h2 {
-  color: #943654;
+  color: var(--text-secondary);
   margin-bottom: 20px;
   text-align: center;
 }
@@ -462,13 +524,13 @@ body {
   width: 100%;
   padding: 12px 15px;
   margin-bottom: 20px;
-  border: 2px solid #f5dbe3;
+  border: 2px solid var(--border-color);
   border-radius: 10px;
   font-size: 16px;
 }
 
 .modal-content h3 {
-  color: #943654;
+  color: var(--text-secondary);
   margin-bottom: 15px;
   font-size: 16px;
 }
@@ -484,7 +546,7 @@ body {
   margin: 5px 0;
   display: flex;
   align-items: center;
-  background: #fff0f3;
+  background: var(--bg-secondary);
   border-radius: 8px;
 }
 
@@ -510,13 +572,13 @@ body {
 }
 
 .modal-button.submit {
-  background: linear-gradient(135deg, #943654 0%, #ff829c 100%);
+  background: var(--gradient-secondary);
   color: white;
 }
 
 .modal-button.cancel {
-  background: #f5dbe3;
-  color: #943654;
+  background: var(--border-color);
+  color: var(--text-secondary);
 }
 
 .modal-button:hover {
@@ -526,7 +588,7 @@ body {
 
 /* Grup listesi öğeleri */
 .active-group {
-  background: linear-gradient(135deg, #ff829c 0%, #fff0f3 100%) !important;
+  background: var(--gradient-secondary) !important;
   color: white !important;
 }
 
@@ -535,11 +597,11 @@ body {
   position: absolute;
   bottom: 50px;
   left: 30px;
-  background: linear-gradient(135deg, #ff829c 0%, #fff0f3 100%);
+  background: var(--gradient-secondary);
   color: white;
   border: none;
   padding: 12px 20px;
-  border-radius: 12px; /* Köşeleri yumuşatılmış dikdörtgen */
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -558,4 +620,135 @@ body {
 
 .create-group-btn:active {
   transform: translateY(0);
+}
+
+/* Tema seçici */
+.theme-selector {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.theme-toggle {
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  padding: 12px 16px;
+  border-radius: 25px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.theme-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle i {
+  font-size: 16px;
+}
+
+.theme-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  padding: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(15px);
+  min-width: 200px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.theme-dropdown.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.theme-dropdown h4 {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.theme-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.theme-option:hover {
+  background: var(--bg-sidebar);
+  transform: translateX(5px);
+}
+
+.theme-option.active {
+  background: var(--gradient-secondary);
+  color: white;
+}
+
+.theme-option.active .theme-name {
+  color: white;
+}
+
+.theme-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.theme-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.theme-color.default {
+  background: linear-gradient(135deg, #6b2641 0%, #d1516e 100%);
+}
+
+.theme-color.dark {
+  background: linear-gradient(135deg, #000000 0%, #43596a 100%);
+}
+
+.theme-color.sunset {
+  background: linear-gradient(135deg, #514370 0%, #8d5e96 100%);
+}
+
+.theme-color.nature {
+  background: linear-gradient(135deg, #18c22f 0%, #eae868 100%);
 }

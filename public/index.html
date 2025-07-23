@@ -18,6 +18,35 @@
     </div>
   </div>
 
+ <div class="theme-selector">
+    <button class="theme-toggle">
+        <i class="fas fa-palette"></i>
+        <span>Tema</span>
+        <i class="fas fa-chevron-down"></i>
+    </button>
+    <div class="theme-dropdown">
+        <h4>Theme</h4>
+        <div class="theme-options">
+            <button class="theme-option active" data-theme="default">
+                <div class="theme-color default"></div>
+                <span class="theme-name">Default</span>
+            </button>
+            <button class="theme-option" data-theme="dark">
+                <div class="theme-color dark"></div>
+                <span class="theme-name">Dark</span>
+            </button>
+            <button class="theme-option" data-theme="sunset">
+                <div class="theme-color sunset"></div>
+                <span class="theme-name">Sunset</span>
+            </button>
+            <button class="theme-option" data-theme="nature">
+                <div class="theme-color nature"></div>
+                <span class="theme-name">Nature</span>
+            </button>
+        </div>
+    </div>
+</div>
+
   <div class="chat-container" style="display:none;">
     <div class="chat-main">
       <div class="chat-header">
@@ -55,7 +84,64 @@
       </div>
     </div>
   </div>
+
+  
 <script>
+
+// Tema dropdown'ını aç/kapat
+const themeToggle = document.querySelector('.theme-toggle');
+const themeDropdown = document.querySelector('.theme-dropdown');
+const themeOptions = document.querySelectorAll('.theme-option');
+
+themeToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    themeDropdown.classList.toggle('show');
+});
+
+// Dropdown dışına tıklandığında kapat
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.theme-selector')) {
+        themeDropdown.classList.remove('show');
+    }
+});
+
+// Tema değiştirme
+themeOptions.forEach(option => {
+    option.addEventListener('click', (e) => {
+        const selectedTheme = e.currentTarget.dataset.theme;
+        
+        // Body'ye tema class'ı ekle
+        document.body.className = selectedTheme === 'default' ? '' : `theme-${selectedTheme}`;
+        
+        // Aktif tema göstergesi
+        themeOptions.forEach(opt => opt.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        
+        // Dropdown'ı kapat
+        themeDropdown.classList.remove('show');
+        
+        // Local storage'a kaydet (isteğe bağlı)
+        localStorage.setItem('selectedTheme', selectedTheme);
+    });
+});
+
+// Sayfa yüklendiğinde kayıtlı temayı uygula
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+    
+    if (savedTheme == 'default') {
+        document.body.className = `theme-${savedTheme}`;
+    }
+    
+    // Aktif tema butonunu işaretle
+    themeOptions.forEach(option => {
+        option.classList.remove('active');
+        if (option.dataset.theme === savedTheme) {
+            option.classList.add('active');
+        }
+    });
+});
+
   let socket;
   let myName = null;
   let activeChatId = null;
@@ -94,24 +180,25 @@
     chatContainer.style.display = 'flex';
 
     // Kullanıcı listesi güncelleme
-    socket.on('user list', (userArray) => {
+    socket.on('user list', (userArray) => { //sunucudan gelen user list ile users haritası güncellenir
       users.clear();
       userArray.forEach(u => {
         if (u.id !== socket.id) users.set(u.id, u.name);
       });
-      renderUserAndGroupList();
+      renderUserAndGroupList(); //liste yeniden ekrana çizilir
     });
 
     // Özel mesaj alma
-    socket.on('private message', ({ from, text, timestamp, own }) => {
+    socket.on('private message', ({ from, text, timestamp, own }) => { //eğer mesaj gönderen sizseniz, gösterilmez
       if (own) return;
 
       const senderId = [...users.entries()].find(([id, n]) => n === from)?.[0];
       if (!senderId) return;
 
+      //mesaj geçmişi varsa eklenir
       if (!chatHistories.has(senderId)) chatHistories.set(senderId, []);
       chatHistories.get(senderId).push({ from, text, timestamp, own: false });
-
+     //aktif sohbetteyse mesaj hemen gösterilir
       if (activeChatId === senderId) {
         addMessage({ from, text, timestamp, own: false });
       }
@@ -123,7 +210,7 @@
         name: groupName,
         members
       });
-      renderUserAndGroupList();
+      renderUserAndGroupList(); //liste yeniden oluşturulur
     });
 
     // Grup mesajı aldığında
@@ -136,7 +223,7 @@
       }
     });
 
-    // TYPING eventini dinle
+    // typing eventi
     socket.on('typing', ({ from, typing, groupId }) => {
       if (groupId) {
         // Grup typing indicator

@@ -3,12 +3,12 @@ const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
 
-const app = express();
+const app = express(); //express uygulamasını baslatır
 const server = http.createServer(app);
 const io = new Server(server);
 
 // Statik dosyalar
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'))); //public klasöründeki dosyalar statik olarak sunulur
 
 const connectedUsers = new Map();
 const groups = new Map();
@@ -18,18 +18,17 @@ function broadcastUserList() {
   io.emit('user list', users);
 }
 
-io.on('connection', (socket) => {
+io.on('connection', (socket) => { //yeni bir kullanıcı bağlandığında bu fonksiyon
   const name = socket.handshake.query.name;
-  connectedUsers.set(socket.id, name);
+  connectedUsers.set(socket.id, name); //kullanıcıyı connetcedUsers listesine ekler
 
   console.log(`${name} connected`);
-  broadcastUserList();
+  broadcastUserList(); //güncel listeyi herkese yollar
 
-  // TYPING eventi dinle ve karşı kullanıcıya gönder
-  socket.on('typing', ({ to, typing }) => {
-    if (to.startsWith('group_')) {
-      // Grup typing indicator'ı
-      const group = groups.get(to);
+  // Yazıyor bilgisi (typing)
+  socket.on('typing', ({ to, typing }) => { //Kullanıcı biriyle mesajlaşırken yazıyo/yazmıyor bilgisi gönderir
+    if (to.startsWith('group_')) { //eğer hedef grupsa
+      const group = groups.get(to); //grup bilgisi alınır
       if (group && group.members.includes(connectedUsers.get(socket.id))) {
         group.members.forEach(member => {
           const memberSocket = [...connectedUsers.entries()]
@@ -53,7 +52,7 @@ io.on('connection', (socket) => {
   socket.on('private message', ({ to, text }) => {
     const from = connectedUsers.get(socket.id);
     const timestamp = new Date();
-
+    //alıcıya mesaj gönderilir
     io.to(to).emit('private message', {
       from,
       text,
@@ -64,19 +63,19 @@ io.on('connection', (socket) => {
       from,
       text,
       timestamp,
-      own: true
+      own: true //göndericiye aynı mesaj gönderilir
     });
   });
 
   // Grup oluşturma
   socket.on('create group', ({ groupName, members }) => {
     const groupId = `group_${Date.now()}`;
-    const creator = connectedUsers.get(socket.id);
+    const creator = connectedUsers.get(socket.id); //grubu oluşturan kişi belirlenir
     
-    // Gruba creator'ı da ekle
+    // Gruba oluşturan kişi eklenir 
     const allMembers = [...new Set([...members, creator])];
     
-    groups.set(groupId, {
+    groups.set(groupId, { //grup bilgileri groups listesine eklenir
       name: groupName,
       members: allMembers,
       creator
@@ -96,6 +95,8 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Grup mesajı 
+// Grup mesajı
 socket.on('group message', ({ groupId, text }) => {
   const group = groups.get(groupId);
   if (!group) return;
@@ -103,29 +104,24 @@ socket.on('group message', ({ groupId, text }) => {
   const from = connectedUsers.get(socket.id);
   const timestamp = new Date();
 
-  // Mesajı gönderen hariç diğer üyelere gönder
   group.members.forEach(member => {
     const memberSocket = [...connectedUsers.entries()]
       .find(([id, n]) => n === member)?.[0];
-    if (memberSocket) {
-      // Gönderen kullanıcıya 'own: true' diğerlerine 'false' olarak gönder
-      io.to(memberSocket).emit('group message', {
-        groupId,
-        from,
-        text,
-        timestamp,
-        own: memberSocket === socket.id
-      });
+    if (memberSocket && memberSocket !== socket.id) { // gönderici hariç
+      io.to(memberSocket).emit('group message', { groupId, from, text, timestamp, own: false });
     }
   });
 });
-  socket.on('disconnect', () => {
+
+
+  socket.on('disconnect', () => { //bağlantı kesilirse
     console.log(`${connectedUsers.get(socket.id)} disconnected`);
     connectedUsers.delete(socket.id);
-    broadcastUserList();
+    broadcastUserList(); //güncel userlist tüm kullanıcılara gönderilir, çevrimdışı olanlar listede görünmez
   });
 });
 
+//Anasayfa (/) isteği
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
