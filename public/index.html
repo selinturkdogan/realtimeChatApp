@@ -9,43 +9,62 @@
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-  <body>
   <div class="welcome-modal" id="welcomeModal">
     <div class="welcome-content">
       <h2>Welcome!</h2>
       <p>Please enter your name to join:</p>
       <input type="text" id="nameInput" class="name-input" placeholder="Name" />
+      
+      <!-- Avatar Selector -->
+      <div class="avatar-selector">
+        <h4>Choose your avatar:</h4>
+        <div class="avatar-style-selector">
+          <!-- Stil butonları dinamik olarak oluşturulacak -->
+        </div>
+        <div class="avatar-grid" id="avatarGrid">
+          <!-- Avatarlar dinamik olarak oluşturulacak -->
+        </div>
+        <div style="text-align: center;">
+          <button class="refresh-avatars" id="refreshAvatars">
+            <i class="fas fa-sync-alt"></i>
+            New Avatars
+          </button>
+        </div>
+      </div>
+
       <button id="joinBtn" class="join-button">Join</button>
-       <div class="theme-selector">
-    <button class="theme-toggle">
-        <i class="fas fa-palette"></i>
-        <span>Tema</span>
-        <i class="fas fa-chevron-down"></i>
-    </button>
-    <div class="theme-dropdown">
-        <h4>Theme</h4>
-        <div class="theme-options">
+      
+      <div class="theme-selector">
+        <button class="theme-toggle">
+          <i class="fas fa-palette"></i>
+          <span>Tema</span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="theme-dropdown">
+          <h4>Theme</h4>
+          <div class="theme-options">
             <button class="theme-option active" data-theme="default">
-                <div class="theme-color default"></div>
-                <span class="theme-name">Default</span>
+              <div class="theme-color default"></div>
+              <span class="theme-name">Default</span>
             </button>
             <button class="theme-option" data-theme="dark">
-                <div class="theme-color dark"></div>
-                <span class="theme-name">Dark</span>
+              <div class="theme-color dark"></div>
+              <span class="theme-name">Dark</span>
             </button>
             <button class="theme-option" data-theme="sunset">
-                <div class="theme-color sunset"></div>
-                <span class="theme-name">Sunset</span>
+              <div class="theme-color sunset"></div>
+              <span class="theme-name">Sunset</span>
             </button>
             <button class="theme-option" data-theme="nature">
-                <div class="theme-color nature"></div>
-                <span class="theme-name">Nature</span>
+              <div class="theme-color nature"></div>
+              <span class="theme-name">Nature</span>
             </button>
+          </div>
         </div>
+      </div>
     </div>
-</div>
-    </div>
-  </div>
+  </div>  
+  
   <div class="chat-container" style="display:none;">
     <div class="chat-main">
       <div class="chat-header">
@@ -62,12 +81,12 @@
       </div>
     </div>
     <div class="chat-sidebar">
-  <h3><i class="fas-comment-alt"></i> Chats</h3>
-  <ul id="usersList"></ul>
-  <button id="createGroupBtn" class="create-group-btn">
-    <i class="fas fa-users"></i> Create Group
-  </button>
-</div>
+      <h3><i class="fas-comment-alt"></i> Chats</h3>
+      <ul id="usersList"></ul>
+      <button id="createGroupBtn" class="create-group-btn">
+        <i class="fas fa-users"></i> Create Group
+      </button>
+    </div>
   </div>
 
   <!-- Grup oluşturma modalı -->
@@ -83,51 +102,221 @@
       </div>
     </div>
   </div>
+  
   <!-- Grup Detay Modal -->
-<div id="groupDetailsModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3 id="groupDetailsTitle"></h3>
-    <ul id="groupMembersList"></ul>
-    <button id="addUserBtn">Kullanıcı Ekle</button>
-    <button id="leaveGroupBtn">Gruptan Ayrıl</button>
-    <button id="deleteGroupBtn">Grubu Sil</button>
-    <button id="closeGroupDetailsBtn">Kapat</button>
-  </div>
-</div>
-<!-- Yeni Kullanıcı Ekleme Modalı -->
-<div id="addUserModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>Kullanıcı Ekle</h3>
-    <div id="availableUsersList"></div>
-    <div class="modal-buttons">
-      <button id="confirmAddUserBtn" class="modal-button submit">Ekle</button>
-      <button id="cancelAddUserBtn" class="modal-button cancel">İptal</button>
+  <div id="groupDetailsModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3 id="groupDetailsTitle"></h3>
+      <ul id="groupMembersList"></ul>
+      <button id="addUserBtn">Add User</button>
+      <button id="leaveGroupBtn">Leave the Group</button>
+      <button id="deleteGroupBtn">Delete the Group</button>
+      <button id="closeGroupDetailsBtn">Close</button>
     </div>
   </div>
-</div>
+  
+  <!-- Yeni Kullanıcı Ekleme Modalı -->
+  <div id="addUserModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>Add User</h3>
+      <div id="availableUsersList"></div>
+      <div class="modal-buttons">
+        <button id="confirmAddUserBtn" class="modal-button submit">Add</button>
+        <button id="cancelAddUserBtn" class="modal-button cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
 
-<!-- Gruptan Ayrıl Onay Modalı -->
-<div id="leaveGroupConfirmModal" class="modal" style="display:none;">
-  <div class="modal-content small">
-    <h4>Gruptan çıkmak istiyor musunuz?</h4>
-    <div class="modal-buttons">
-      <button id="confirmLeaveGroupBtn" class="danger">Evet</button>
-      <button id="cancelLeaveGroupBtn">Hayır</button>
+  <!-- Gruptan Ayrıl Onay Modalı -->
+  <div id="leaveGroupConfirmModal" class="modal" style="display:none;">
+    <div class="modal-content small">
+      <h4>Do you want to leave the group?</h4>
+      <div class="modal-buttons">
+        <button id="confirmLeaveGroupBtn" class="danger">yes</button>
+        <button id="cancelLeaveGroupBtn">No</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Grup Silme Onay Modalı -->
-<div id="deleteGroupConfirmModal" class="modal" style="display:none;">
-  <div class="modal-content small">
-    <h4>Bu grubu silmek istediğinizden emin misiniz?</h4>
-    <div class="modal-buttons">
-      <button id="confirmDeleteGroupBtn" class="danger">Evet, Sil</button>
-      <button id="cancelDeleteGroupBtn">İptal</button>
+  <!-- Grup Silme Onay Modalı -->
+  <div id="deleteGroupConfirmModal" class="modal" style="display:none;">
+    <div class="modal-content small">
+      <h4>Do you want to delete group?</h4>
+      <div class="modal-buttons">
+        <button id="confirmDeleteGroupBtn" class="danger">Yes, delete</button>
+        <button id="cancelDeleteGroupBtn">No</button>
+      </div>
     </div>
   </div>
-</div>
+
 <script>
+// Avatar seçimi için değişkenler
+let selectedAvatar = null;
+let currentAvatarStyle = 'adventurer';
+let userAvatars = new Map(); // Kullanıcı avatarlarını saklamak için
+let availableStyles = []; // API'den çekilen stiller
+
+// DiceBear API'den mevcut stilleri çek
+async function fetchAvailableStyles() {
+  try {
+    // DiceBear'ın popüler stillerini tanımlayalım (API'de /styles endpoint'i yok)
+    const popularStyles = [
+      'adventurer', 'adventurer-neutral', 'avataaars', 'avataaars-neutral',
+      'big-ears', 'big-ears-neutral', 'big-smile', 'bottts', 'bottts-neutral',
+      'croodles', 'croodles-neutral', 'fun-emoji', 'icons', 'identicon',
+      'initials', 'lorelei', 'lorelei-neutral', 'micah', 'miniavs',
+      'notionists', 'notionists-neutral', 'open-peeps', 'personas',
+      'pixel-art', 'pixel-art-neutral', 'shapes', 'thumbs'
+    ];
+    
+    // Test each style to see if it's available
+    const workingStyles = [];
+    for (const style of popularStyles) {
+      try {
+        const testUrl = generateAvatarUrl(style, 'test');
+        const response = await fetch(testUrl);
+        if (response.ok) {
+          workingStyles.push({
+            id: style,
+            name: formatStyleName(style)
+          });
+        }
+      } catch (error) {
+        console.log(`Style ${style} not available`);
+      }
+    }
+    
+    availableStyles = workingStyles.slice(0, 8); // İlk 8 çalışan stili al
+    return availableStyles;
+  } catch (error) {
+    console.error('Error fetching styles:', error);
+    // Fallback olarak bilinen çalışan stiller
+    return [
+      { id: 'adventurer', name: 'Adventurer' },
+      { id: 'avataaars', name: 'Avataaars' },
+      { id: 'bottts', name: 'Bottts' },
+      { id: 'micah', name: 'Micah' },
+      { id: 'personas', name: 'Personas' }
+    ];
+  }
+}
+
+// Stil butonlarını oluştur
+async function createStyleButtons() {
+  const styleSelector = document.querySelector('.avatar-style-selector');
+  const styles = await fetchAvailableStyles();
+  
+  styleSelector.innerHTML = '';
+  
+  styles.forEach((style, index) => {
+    const button = document.createElement('button');
+    button.className = `style-btn ${index === 0 ? 'active' : ''}`;
+    button.dataset.style = style.id;
+    button.textContent = style.name;
+    
+    button.addEventListener('click', (e) => {
+      document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentAvatarStyle = e.target.dataset.style;
+      generateAvatars(currentAvatarStyle);
+    });
+    
+    styleSelector.appendChild(button);
+  });
+  
+  // İlk stili ayarla
+  if (styles.length > 0) {
+    currentAvatarStyle = styles[0].id;
+  }
+}
+
+// Avatar fonksiyonları
+function generateAvatarUrl(style, seed) {
+  return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
+}
+
+function generateRandomSeed() {
+  return Math.random().toString(36).substring(2, 15);
+}
+
+async function generateAvatars(style = 'adventurer', count = 12) {
+  const avatarGrid = document.getElementById('avatarGrid');
+  avatarGrid.innerHTML = '<div style="text-align: center; padding: 20px;">Loading avatars...</div>';
+  
+  try {
+    const avatarPromises = [];
+    
+    for (let i = 0; i < count; i++) {
+      const seed = generateRandomSeed();
+      const avatarUrl = generateAvatarUrl(style, seed);
+      avatarPromises.push(createAvatarOption(seed, style, avatarUrl));
+    }
+    
+    const avatarOptions = await Promise.all(avatarPromises);
+    
+    avatarGrid.innerHTML = '';
+    avatarOptions.forEach(option => {
+      if (option) avatarGrid.appendChild(option);
+    });
+    
+    // İlk avatarı otomatik seç
+    if (avatarGrid.firstChild) {
+      const firstAvatar = avatarGrid.firstChild;
+      selectAvatar(firstAvatar, firstAvatar.querySelector('img').src);
+    }
+  } catch (error) {
+    console.error('Error generating avatars:', error);
+    avatarGrid.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">Error loading avatars</div>';
+  }
+}
+
+async function createAvatarOption(seed, style, avatarUrl) {
+  return new Promise((resolve) => {
+    const avatarOption = document.createElement('div');
+    avatarOption.className = 'avatar-option';
+    avatarOption.dataset.seed = seed;
+    avatarOption.dataset.style = style;
+    
+    const img = document.createElement('img');
+    img.src = avatarUrl;
+    img.alt = 'Avatar option';
+    
+    img.onload = () => {
+      avatarOption.appendChild(img);
+      avatarOption.addEventListener('click', () => selectAvatar(avatarOption, avatarUrl));
+      resolve(avatarOption);
+    };
+    
+    img.onerror = () => {
+      resolve(null); // Avatar yüklenemezse null döndür
+    };
+  });
+}
+
+function selectAvatar(avatarElement, avatarUrl) {
+  // Önceki seçimi kaldır
+  document.querySelectorAll('.avatar-option').forEach(option => {
+    option.classList.remove('selected');
+  });
+  
+  // Yeni seçimi işaretle
+  avatarElement.classList.add('selected');
+  selectedAvatar = avatarUrl;
+}
+
+// Avatar stil değiştirme (artık dinamik olarak oluşturulan butonlar için)
+// Bu kısım createStyleButtons() fonksiyonuna taşındı
+
+// Yeni avatarlar generate etme
+document.getElementById('refreshAvatars').addEventListener('click', () => {
+  generateAvatars(currentAvatarStyle);
+});
+
+// Sayfa yüklendiğinde avatarları generate et
+document.addEventListener('DOMContentLoaded', async () => {
+  await createStyleButtons(); // Stil butonlarını oluştur
+  generateAvatars(currentAvatarStyle); // İlk avatarları oluştur
+});
 
 // Tema dropdown'ını aç/kapat
 const themeToggle = document.querySelector('.theme-toggle');
@@ -161,10 +350,12 @@ themeOptions.forEach(option => {
         // Dropdown'ı kapat
         themeDropdown.classList.remove('show');
         
-        // Local storage'a kaydet (isteğe bağlı)
+        // Local storage'a kaydet 
         localStorage.setItem('selectedTheme', selectedTheme);
+
     });
 });
+
 
 // Sayfa yüklendiğinde kayıtlı temayı uygula
 document.addEventListener('DOMContentLoaded', () => {
@@ -188,6 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeChatId = null;
   let currentGroupToDelete = null; // Silinecek grup ID'sini saklamak için
   let currentGroupToLeave = null; // Ayrılacak grup ID'sini saklamak için
+  let myAvatarStyle = "adventurer";
+  let myAvatarSeed = "Selin";
 
   // DOM elements
   const welcomeModal = document.getElementById('welcomeModal');
@@ -213,10 +406,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const cancelAddUserBtn = document.getElementById('cancelAddUserBtn');
   let currentGroupForAddingUser = null;
 
-// Butonun click eventini debug edelim
+// Butonun click eventi
 document.getElementById('confirmAddUserBtn').addEventListener('click', function() {
-  console.log("Butona basıldı!"); // Bu mesajı konsolda görmelisiniz
-  // Diğer kodlar...
+  console.log("The button was pressed!"); 
 });
 
 // Grup detaylarını gösterirken
@@ -225,7 +417,6 @@ function openGroupDetails(groupId) {
     if (!group) return;
 
     currentGroupForAddingUser = groupId; // Önemli: Geçerli grup ID'sini sakla
-    // ... diğer kodlar
 }
 
 // Kullanıcı ekleme modalını göster
@@ -332,7 +523,7 @@ confirmAddUserBtn.onclick = () => {
     });
     addUserModal.style.display = 'none';
   } else {
-    alert('Lütfen en az bir kullanıcı seçin');
+    alert('Please select at least one user.');
   }
 };
   // Grup silme onay modalı elemanları
@@ -387,7 +578,7 @@ confirmAddUserBtn.onclick = () => {
 
     // Grup oluşturulduğunda
 socket.on('group created', ({ groupId, groupName, members }) => {
-  console.log('grup oluşturuldu', groupName, members);
+  console.log('grup created', groupName, members);
 
   //  Grubu belleğe kaydet
   groups.set(groupId, {
@@ -395,10 +586,8 @@ socket.on('group created', ({ groupId, groupName, members }) => {
     members
   });
 
-  // 👁️ Listeyi güncelle
-  renderUserAndGroupList();
+  renderUserAndGroupList();// Listeyi güncelle
 });
-
 
     // Grup mesajı aldığında
     socket.on('group message', ({ groupId, from, text, timestamp, own }) => {
@@ -491,40 +680,56 @@ socket.on('group created', ({ groupId, groupName, members }) => {
     messagesList.scrollTop = messagesList.scrollHeight;
   }
 
+  
   // Mesaj elemanı oluşturma
-  function addMessage({ from, text, timestamp, own }) {
-    const li = document.createElement('li');
-    li.className = 'message ' + (own ? 'own' : '');
+function addMessage({ from, text, timestamp, own }) {
+  const li = document.createElement('li');
+  li.className = 'message ' + (own ? 'own' : '');
 
-    const avatar = document.createElement('div');
-    avatar.className = 'message-avatar';
-    avatar.textContent = from.charAt(0).toUpperCase();
+  const avatar = document.createElement('img');
+avatar.className = 'message-avatar';
 
-    const content = document.createElement('div');
-    content.className = 'message-content';
+let style;
+let seed;
 
-    const sender = document.createElement('div');
-    sender.className = 'message-sender';
-    sender.textContent = from;
+// Eğer mesaj bana aitse localStorage'dan avatar stilini ve seed'ini al
+if (own) {
+  style = localStorage.getItem("avatarStyle") || "adventurer";
+  seed = localStorage.getItem("avatarSeed") || from;
+} else {
+  // Diğer kişiler için stil sabit olabilir ama seed 'from' olmalı
+  style = "bottts"; // veya sen nasıl istiyorsan
+  seed = from;
+}
 
-    const messageText = document.createElement('div');
-    messageText.className = 'message-text';
-    messageText.textContent = text;
+avatar.src = `https://api.dicebear.com/8.x/${style}/svg?seed=${encodeURIComponent(seed)}`;
 
-    const time = document.createElement('div');
-    time.className = 'message-time';
-    time.textContent = new Date(timestamp).toLocaleTimeString();
+  const content = document.createElement('div');
+  content.className = 'message-content';
 
-    content.appendChild(sender);
-    content.appendChild(messageText);
-    content.appendChild(time);
+  const sender = document.createElement('div');
+  sender.className = 'message-sender';
+  sender.textContent = from;
 
-    li.appendChild(avatar);
-    li.appendChild(content);
+  const messageText = document.createElement('div');
+  messageText.className = 'message-text';
+  messageText.textContent = text;
 
-    messagesList.appendChild(li);
-    messagesList.scrollTop = messagesList.scrollHeight;
-  }
+  const time = document.createElement('div');
+  time.className = 'message-time';
+  time.textContent = new Date(timestamp).toLocaleTimeString();
+
+  content.appendChild(sender);
+  content.appendChild(messageText);
+  content.appendChild(time);
+
+  li.appendChild(avatar);
+  li.appendChild(content);
+
+  messagesList.appendChild(li);
+  messagesList.scrollTop = messagesList.scrollHeight;
+}
+
 
   // Yazarken typing event gönder
   input.addEventListener('input', () => {
@@ -550,7 +755,6 @@ socket.on('group created', ({ groupId, groupName, members }) => {
     if (!text) return;
     
     const timestamp = new Date();
-    
     if (!activeChatId) return alert('Please select a chat first');
     
     if (activeChatId.startsWith('group_')) {
@@ -600,7 +804,7 @@ socket.on('group created', ({ groupId, groupName, members }) => {
 createGroupBtn.onclick = () => {
   // Önce socket bağlantısını kontrol et
   if (!socket || !socket.connected) {
-    return alert('Önce sunucuya bağlanmalısınız!');
+    return alert('You must connect to the server first!');
   }
 
   createGroupModal.style.display = 'block';
@@ -652,7 +856,7 @@ submitGroupBtn.onclick = () => {
         checkbox.checked = false;
       });
     } else {
-      alert(response?.message || 'Grup oluşturulamadı');
+      alert(response?.message || 'The group could not be created');
     }
   });
 };
@@ -693,7 +897,7 @@ function openGroupDetails(groupId) {
   const group = groups.get(groupId);
   if (!group) return;
 
-  groupDetailsTitle.textContent = `${group.name} Üyeleri`;
+  groupDetailsTitle.textContent = `${group.name} Members`;
   groupMembersList.innerHTML = '';
   group.members.forEach(member => {
     const li = document.createElement('li');
@@ -808,4 +1012,4 @@ socket.on('group updated', ({ groupId, members }) => {
 });
 </script>
 </body>
-</html>
+</html> 

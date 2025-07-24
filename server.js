@@ -25,6 +25,8 @@ io.on('connection', (socket) => { //yeni bir kullanıcı bağlandığında bu fo
   console.log(`${name} connected`);
   broadcastUserList(); //güncel listeyi herkese yollar
 
+
+
    // Gruptan ayrıl
     socket.on('leave group', ({ groupId }) => {
         const group = groups.get(groupId);
@@ -80,11 +82,12 @@ io.on('connection', (socket) => { //yeni bir kullanıcı bağlandığında bu fo
       text,
       timestamp,
       own: true //göndericiye aynı mesaj gönderilir
+    
     });
   });
 
   // Grup oluşturma
-// Grup oluşturma işlemi (acknowledgement ekleyin)
+// Grup oluşturma işlemi 
 socket.on('create group', ({ groupName, members }, callback) => {
   try {
     const groupId = `group_${Date.now()}`;
@@ -181,7 +184,6 @@ socket.on('add users to group', ({ groupId, users }) => {
             });
         }
     });
-    
     console.log('Updated group members:', updatedMembers);
 });
   socket.on('disconnect', () => { //bağlantı kesilirse

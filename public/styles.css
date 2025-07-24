@@ -182,24 +182,6 @@ body {
   flex-direction: row-reverse;
 }
 
-.message-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: white;
-  font-size: 14px;
-  flex-shrink: 0;
-  background: var(--text-secondary);
-}
-
-.message.own .message-avatar {
-  background: var(--bg-accent);
-}
-
 .message-content {
   background: white;
   padding: 12px 16px;
@@ -941,3 +923,113 @@ body {
   z-index: 1000;
   display: none;
 }
+
+    /* Avatar Selection Styles */
+    .avatar-selector {
+      margin: 20px 0;
+    }
+
+    .avatar-selector h4 {
+      color: #943654;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      text-align: left;
+    }
+
+    .avatar-style-selector {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .style-btn {
+      padding: 6px 12px;
+      border: 2px solid #ddd;
+      background: white;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.8rem;
+    }
+
+    .style-btn.active {
+      background: #ffbccc;
+      color: white;
+      border-color: #ff829c;
+    }
+
+    .avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .avatar-option {
+      width: 50px;
+      height: 50px;
+      border: 3px solid transparent;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .avatar-option:hover {
+      transform: scale(1.1);
+      border-color: #ffbccc;
+    }
+
+    .avatar-option.selected {
+      border-color: #ffbccc;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+    }
+
+    .avatar-option img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .refresh-avatars {
+      color: #d1516e;
+      background: #ffbccc;
+      border: 2px;
+      padding: 6px 12px;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+    }
+
+    .refresh-avatars:hover {
+      background: #ffe5ff;
+      border-color: #ffe5ec;
+    }
+
+    /* Update message avatar to show selected avatar */
+    .message-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      margin: 0 10px;
+      flex-shrink: 0;
+      overflow: hidden;
+      background: #ffbccc;
+    }
+
+    .message-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
