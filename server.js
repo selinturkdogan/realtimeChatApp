@@ -25,6 +25,22 @@ io.on('connection', (socket) => { //yeni bir kullanıcı bağlandığında bu fo
   console.log(`${name} connected`);
   broadcastUserList(); //güncel listeyi herkese yollar
 
+   // Gruptan ayrıl
+    socket.on('leave group', ({ groupId }) => {
+        const group = groups.get(groupId);
+        if (!group) return;
+        const username = connectedUsers.get(socket.id);
+        group.members = group.members.filter(m => m !== username);
+        io.emit('group updated', { groupId, members: group.members });
+    });
+
+    // Grubu sil
+    socket.on('delete group', ({ groupId }) => {
+        if (groups.has(groupId)) {
+            groups.delete(groupId);
+            io.emit('group deleted', { groupId });
+        }
+    });
   // Yazıyor bilgisi (typing)
   socket.on('typing', ({ to, typing }) => { //Kullanıcı biriyle mesajlaşırken yazıyo/yazmıyor bilgisi gönderir
     if (to.startsWith('group_')) { //eğer hedef grupsa
@@ -68,20 +84,26 @@ io.on('connection', (socket) => { //yeni bir kullanıcı bağlandığında bu fo
   });
 
   // Grup oluşturma
-  socket.on('create group', ({ groupName, members }) => {
+// Grup oluşturma işlemi (acknowledgement ekleyin)
+socket.on('create group', ({ groupName, members }, callback) => {
+  try {
     const groupId = `group_${Date.now()}`;
-    const creator = connectedUsers.get(socket.id); //grubu oluşturan kişi belirlenir
+    const creator = connectedUsers.get(socket.id);
     
-    // Gruba oluşturan kişi eklenir 
-    const allMembers = [...new Set([...members, creator])];
+    // Geçerli kullanıcıları filtrele
+    const validMembers = members.filter(member => 
+      [...connectedUsers.values()].includes(member)
+    );
     
-    groups.set(groupId, { //grup bilgileri groups listesine eklenir
+    const allMembers = [...new Set([...validMembers, creator])];
+    
+    groups.set(groupId, {
       name: groupName,
       members: allMembers,
       creator
     });
 
-    // Tüm üyelere grup bilgisini gönder
+    // Tüm üyelere bilgi gönder
     allMembers.forEach(member => {
       const memberSocket = [...connectedUsers.entries()]
         .find(([id, n]) => n === member)?.[0];
@@ -93,8 +115,14 @@ io.on('connection', (socket) => { //yeni bir kullanıcı bağlandığında bu fo
         });
       }
     });
-  });
 
+    // Başarılı yanıt
+    callback({ success: true, groupId });
+  } catch (error) {
+    console.error('Grup oluşturma hatası:', error);
+    callback({ success: false, message: 'Grup oluşturulamadı' });
+  }
+});
 // Grup mesajı
 socket.on('group message', ({ groupId, text }) => {
   const group = groups.get(groupId);
@@ -111,13 +139,59 @@ socket.on('group message', ({ groupId, text }) => {
     }
   });
 });
+// add users group 
+socket.on('add users to group', ({ groupId, users }) => {
+    const group = groups.get(groupId);
+    if (!group) {
+        console.log('Group not found:', groupId);
+        return;
+    }
+    console.log('Adding users:', users, 'to group:', groupId);
+    
+    // Mevcut üyelerle yeni üyeleri birleştir (tekrarları önle)
+    const updatedMembers = [...new Set([...group.members, ...users])];
+    
+    // Grubu güncelle
+    groups.set(groupId, {
+        ...group,
+        members: updatedMembers
+    });
 
+    //  Tüm grup üyelerine güncellemeyi gönder
+    updatedMembers.forEach(member => {
+        const memberSocket = [...connectedUsers.entries()]
+            .find(([id, name]) => name === member)?.[0];
+        if (memberSocket) {
+            io.to(memberSocket).emit('group updated', {
+                groupId,
+                members: updatedMembers
+            });
+        }
+    });
+
+    //  Yeni eklenen üyelere grup bilgisini gönder
+    users.forEach(newMember => {
+        const memberSocket = [...connectedUsers.entries()]
+            .find(([id, name]) => name === newMember)?.[0];
+        if (memberSocket) {
+            io.to(memberSocket).emit('group created', {
+                groupId,
+                groupName: group.name,
+                members: updatedMembers
+            });
+        }
+    });
+    
+    console.log('Updated group members:', updatedMembers);
+});
   socket.on('disconnect', () => { //bağlantı kesilirse
     console.log(`${connectedUsers.get(socket.id)} disconnected`);
     connectedUsers.delete(socket.id);
     broadcastUserList(); //güncel userlist tüm kullanıcılara gönderilir, çevrimdışı olanlar listede görünmez
   });
 });
+
+
 
 //Anasayfa (/) isteği
 app.get('/', (req, res) => {

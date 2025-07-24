@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ChatApp</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
@@ -15,10 +16,7 @@
       <p>Please enter your name to join:</p>
       <input type="text" id="nameInput" class="name-input" placeholder="Name" />
       <button id="joinBtn" class="join-button">Join</button>
-    </div>
-  </div>
-
- <div class="theme-selector">
+       <div class="theme-selector">
     <button class="theme-toggle">
         <i class="fas fa-palette"></i>
         <span>Tema</span>
@@ -46,11 +44,13 @@
         </div>
     </div>
 </div>
-
+    </div>
+  </div>
   <div class="chat-container" style="display:none;">
     <div class="chat-main">
       <div class="chat-header">
         <h2 id="chatWith">Choose chat</h2>
+        <button id="groupMenuBtn" style="display:none;">...</button>
       </div>
       <ul id="messages" class="messages-container"></ul>
       <div id="typingIndicator" class="typing-indicator" style="display:none;"></div>
@@ -62,13 +62,12 @@
       </div>
     </div>
     <div class="chat-sidebar">
-      <h3>Chats</h3>
-      <ul id="usersList"></ul>
-      <!-- Create Group button now properly placed inside sidebar -->
-      <button id="createGroupBtn" class="create-group-btn">
-        <i class="fas fa-users"></i> Create Group
-      </button>
-    </div>
+  <h3><i class="fas-comment-alt"></i> Chats</h3>
+  <ul id="usersList"></ul>
+  <button id="createGroupBtn" class="create-group-btn">
+    <i class="fas fa-users"></i> Create Group
+  </button>
+</div>
   </div>
 
   <!-- Grup oluşturma modalı -->
@@ -84,8 +83,50 @@
       </div>
     </div>
   </div>
+  <!-- Grup Detay Modal -->
+<div id="groupDetailsModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3 id="groupDetailsTitle"></h3>
+    <ul id="groupMembersList"></ul>
+    <button id="addUserBtn">Kullanıcı Ekle</button>
+    <button id="leaveGroupBtn">Gruptan Ayrıl</button>
+    <button id="deleteGroupBtn">Grubu Sil</button>
+    <button id="closeGroupDetailsBtn">Kapat</button>
+  </div>
+</div>
+<!-- Yeni Kullanıcı Ekleme Modalı -->
+<div id="addUserModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>Kullanıcı Ekle</h3>
+    <div id="availableUsersList"></div>
+    <div class="modal-buttons">
+      <button id="confirmAddUserBtn" class="modal-button submit">Ekle</button>
+      <button id="cancelAddUserBtn" class="modal-button cancel">İptal</button>
+    </div>
+  </div>
+</div>
 
-  
+<!-- Gruptan Ayrıl Onay Modalı -->
+<div id="leaveGroupConfirmModal" class="modal" style="display:none;">
+  <div class="modal-content small">
+    <h4>Gruptan çıkmak istiyor musunuz?</h4>
+    <div class="modal-buttons">
+      <button id="confirmLeaveGroupBtn" class="danger">Evet</button>
+      <button id="cancelLeaveGroupBtn">Hayır</button>
+    </div>
+  </div>
+</div>
+
+<!-- Grup Silme Onay Modalı -->
+<div id="deleteGroupConfirmModal" class="modal" style="display:none;">
+  <div class="modal-content small">
+    <h4>Bu grubu silmek istediğinizden emin misiniz?</h4>
+    <div class="modal-buttons">
+      <button id="confirmDeleteGroupBtn" class="danger">Evet, Sil</button>
+      <button id="cancelDeleteGroupBtn">İptal</button>
+    </div>
+  </div>
+</div>
 <script>
 
 // Tema dropdown'ını aç/kapat
@@ -145,6 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let socket;
   let myName = null;
   let activeChatId = null;
+  let currentGroupToDelete = null; // Silinecek grup ID'sini saklamak için
+  let currentGroupToLeave = null; // Ayrılacak grup ID'sini saklamak için
 
   // DOM elements
   const welcomeModal = document.getElementById('welcomeModal');
@@ -163,6 +206,144 @@ document.addEventListener('DOMContentLoaded', () => {
   const onlineUsersList = document.getElementById('onlineUsersList');
   const submitGroupBtn = document.getElementById('submitGroupBtn');
   const cancelGroupBtn = document.getElementById('cancelGroupBtn');
+  const addUserBtn = document.getElementById('addUserBtn');
+  const addUserModal = document.getElementById('addUserModal');
+  const availableUsersList = document.getElementById('availableUsersList');
+  const confirmAddUserBtn = document.getElementById('confirmAddUserBtn');
+  const cancelAddUserBtn = document.getElementById('cancelAddUserBtn');
+  let currentGroupForAddingUser = null;
+
+// Butonun click eventini debug edelim
+document.getElementById('confirmAddUserBtn').addEventListener('click', function() {
+  console.log("Butona basıldı!"); // Bu mesajı konsolda görmelisiniz
+  // Diğer kodlar...
+});
+
+// Grup detaylarını gösterirken
+function openGroupDetails(groupId) {
+    const group = groups.get(groupId);
+    if (!group) return;
+
+    currentGroupForAddingUser = groupId; // Önemli: Geçerli grup ID'sini sakla
+    // ... diğer kodlar
+}
+
+// Kullanıcı ekleme modalını göster
+function showAddUserModal(groupId) {
+    console.log('Opening add user modal for group:', groupId);
+    addUserModal.style.display = 'block';
+    availableUsersList.innerHTML = '';
+
+    const group = groups.get(groupId);
+    if (!group) {
+        console.error('Group not found');
+        return;
+    }
+
+    // Sadece gruba dahil olmayan kullanıcıları listele
+    users.forEach((name, id) => {
+        if (!group.members.includes(name)) {
+            const userDiv = document.createElement('div');
+            userDiv.className = 'group-user-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `add_user_${id}`;
+            checkbox.value = name;
+            
+            const label = document.createElement('label');
+            label.htmlFor = `add_user_${id}`;
+            label.textContent = name;
+            
+            userDiv.appendChild(checkbox);
+            userDiv.appendChild(label);
+            availableUsersList.appendChild(userDiv);
+        }
+    });
+
+    if (availableUsersList.children.length === 0) {
+        availableUsersList.innerHTML = '<p>No available users to add</p>';
+    }
+}
+
+// Kullanıcı ekleme butonu işlevi
+confirmAddUserBtn.onclick = () => {
+    const selectedUsers = [];
+    document.querySelectorAll('#availableUsersList input[type="checkbox"]:checked')
+        .forEach(checkbox => {
+            selectedUsers.push(checkbox.value);
+        });
+
+    console.log('Selected users to add:', selectedUsers);
+    console.log('Current group ID:', currentGroupForAddingUser);
+
+    if (selectedUsers.length > 0 && currentGroupForAddingUser) {
+        socket.emit('add users to group', {
+            groupId: currentGroupForAddingUser,
+            users: selectedUsers
+        });
+        addUserModal.style.display = 'none';
+    } else {
+        alert('Please select at least one user to add');
+    }
+};
+
+function showAddUserModal(groupId) {
+  addUserModal.style.display = 'block';
+  availableUsersList.innerHTML = '';
+  
+  const group = groups.get(groupId);
+  if (!group) return;
+
+  // SADECE GRUPTA OLMAYAN KULLANICILARI GÖSTER
+  users.forEach((name, id) => {
+    if (!group.members.includes(name)) {
+      const userDiv = document.createElement('div');
+      userDiv.className = 'group-user-item';
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = `add_user_${id}`;
+      checkbox.value = name;
+      
+      const label = document.createElement('label');
+      label.htmlFor = `add_user_${id}`;
+      label.textContent = name;
+      
+      userDiv.appendChild(checkbox);
+      userDiv.appendChild(label);
+      availableUsersList.appendChild(userDiv);
+    }
+  });
+}
+
+
+confirmAddUserBtn.onclick = () => {
+  const selectedUsers = [];
+  document.querySelectorAll('#availableUsersList input[type="checkbox"]:checked').forEach(checkbox => {
+    selectedUsers.push(checkbox.value);
+  });
+  
+  if (selectedUsers.length > 0 && currentGroupForAddingUser) {
+    // SADECE SEÇİLEN KULLANICILARI GÖNDER
+    socket.emit('add users to group', {
+      groupId: currentGroupForAddingUser,
+      users: selectedUsers // Tüm kullanıcılar değil, sadece seçilenler
+    });
+    addUserModal.style.display = 'none';
+  } else {
+    alert('Lütfen en az bir kullanıcı seçin');
+  }
+};
+  // Grup silme onay modalı elemanları
+  const deleteGroupConfirmModal = document.getElementById('deleteGroupConfirmModal');
+  const confirmDeleteGroupBtn = document.getElementById('confirmDeleteGroupBtn');
+  const cancelDeleteGroupBtn = document.getElementById('cancelDeleteGroupBtn');
+
+  // Gruptan ayrılma onay modalı elemanları
+  const leaveGroupConfirmModal = document.getElementById('leaveGroupConfirmModal');
+  const confirmLeaveGroupBtn = document.getElementById('confirmLeaveGroupBtn');
+  const cancelLeaveGroupBtn = document.getElementById('cancelLeaveGroupBtn');
 
   const users = new Map();
   const groups = new Map();
@@ -205,13 +386,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Grup oluşturulduğunda
-    socket.on('group created', ({ groupId, groupName, members }) => {
-      groups.set(groupId, {
-        name: groupName,
-        members
-      });
-      renderUserAndGroupList(); //liste yeniden oluşturulur
-    });
+socket.on('group created', ({ groupId, groupName, members }) => {
+  console.log('grup oluşturuldu', groupName, members);
+
+  //  Grubu belleğe kaydet
+  groups.set(groupId, {
+    name: groupName,
+    members
+  });
+
+  // 👁️ Listeyi güncelle
+  renderUserAndGroupList();
+});
+
 
     // Grup mesajı aldığında
     socket.on('group message', ({ groupId, from, text, timestamp, own }) => {
@@ -282,12 +469,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Grup sohbeti açma
   function openGroupChat(groupId, groupName) {
-    activeChatId = groupId;
-    chatWith.textContent = `${groupName} (Group)`;
-    typingIndicator.style.display = 'none';
-    renderUserAndGroupList();
-    renderMessages();
-  }
+    const groupMenuBtn = document.getElementById('groupMenuBtn');
+  activeChatId = groupId;
+  chatWith.textContent = `${groupName} (Group)`;
+  typingIndicator.style.display = 'none';
+  groupMenuBtn.style.display = 'inline-block'; 
+
+  renderUserAndGroupList();
+  renderMessages();
+
+  // Menü butonuna tıklanınca grup detay modalı açılır
+  groupMenuBtn.onclick = () => openGroupDetails(groupId);
+}
+
 
   // Mesajları ekrana yazdırma
   function renderMessages() {
@@ -402,12 +596,19 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   
   // Grup oluşturma modal işlemleri
-  createGroupBtn.onclick = () => {
-    createGroupModal.style.display = 'block';
-    
-    // Online kullanıcıları listele (checkbox'lı)
-    onlineUsersList.innerHTML = '';
-    users.forEach((name, id) => {
+// Grup oluşturma butonu event listener'ı
+createGroupBtn.onclick = () => {
+  // Önce socket bağlantısını kontrol et
+  if (!socket || !socket.connected) {
+    return alert('Önce sunucuya bağlanmalısınız!');
+  }
+
+  createGroupModal.style.display = 'block';
+  
+  // Online kullanıcıları listele (kendinizi hariç tutun)
+  onlineUsersList.innerHTML = '';
+  users.forEach((name, id) => {
+    if (name !== myName) { // Kendinizi listede göstermeyin
       const userDiv = document.createElement('div');
       userDiv.className = 'group-user-item';
       
@@ -423,32 +624,188 @@ document.addEventListener('DOMContentLoaded', () => {
       userDiv.appendChild(checkbox);
       userDiv.appendChild(label);
       onlineUsersList.appendChild(userDiv);
-    });
+    }
+  });
+};
+
+submitGroupBtn.onclick = () => {
+  const groupName = groupNameInput.value.trim();
+  if (!groupName) return alert('Grup adı giriniz');
+  
+  const selectedUsers = [];
+  document.querySelectorAll('#onlineUsersList input[type="checkbox"]:checked').forEach(checkbox => {
+    selectedUsers.push(checkbox.value);
+  });
+  
+  if (selectedUsers.length === 0) return alert('En az bir üye seçin');
+  
+  // Sunucuya grup oluşturma isteği gönder
+  socket.emit('create group', {
+    groupName,
+    members: selectedUsers
+  }, (response) => {
+    if (response && response.success) {
+      createGroupModal.style.display = 'none';
+      groupNameInput.value = '';
+      // Seçimleri temizle
+      document.querySelectorAll('#onlineUsersList input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+    } else {
+      alert(response?.message || 'Grup oluşturulamadı');
+    }
+  });
+};
+  // Yeni elemanlar
+const groupMenuBtn = document.getElementById('groupMenuBtn');
+const groupDetailsModal = document.getElementById('groupDetailsModal');
+const groupDetailsTitle = document.getElementById('groupDetailsTitle');
+const groupMembersList = document.getElementById('groupMembersList');
+const leaveGroupBtn = document.getElementById('leaveGroupBtn');
+const deleteGroupBtn = document.getElementById('deleteGroupBtn');
+const closeGroupDetailsBtn = document.getElementById('closeGroupDetailsBtn');
+
+// Grup sohbeti açarken menü butonunu göster
+function openGroupChat(groupId, groupName) {
+  activeChatId = groupId;
+  chatWith.textContent = `${groupName} (Group)`;
+  typingIndicator.style.display = 'none';
+  groupMenuBtn.style.display = 'inline-block'; // Menü butonu görünür
+  renderUserAndGroupList();
+  renderMessages();
+
+  // Menü butonuna tıklayınca modal aç
+  groupMenuBtn.onclick = () => openGroupDetails(groupId);
+}
+
+// Normal sohbet açarken menü butonunu gizle
+function openChat(id, name) {
+  activeChatId = id;
+  chatWith.textContent = name;
+  typingIndicator.style.display = 'none';
+  groupMenuBtn.style.display = 'none'; // Menü butonu gizli
+  renderUserAndGroupList();
+  renderMessages();
+}
+
+// Grup detaylarını modalda göster
+function openGroupDetails(groupId) {
+  const group = groups.get(groupId);
+  if (!group) return;
+
+  groupDetailsTitle.textContent = `${group.name} Üyeleri`;
+  groupMembersList.innerHTML = '';
+  group.members.forEach(member => {
+    const li = document.createElement('li');
+    li.textContent = member;
+    groupMembersList.appendChild(li);
+  });
+
+  // Ayrılma butonu - Onay modalını aç
+  leaveGroupBtn.onclick = () => {
+    currentGroupToLeave = groupId;
+    groupDetailsModal.style.display = 'none';
+    leaveGroupConfirmModal.style.display = 'block';
   };
 
-  submitGroupBtn.onclick = () => {
-    const groupName = groupNameInput.value.trim();
-    if (!groupName) return alert('Enter group name');
-    
-    const selectedUsers = [];
-    document.querySelectorAll('#onlineUsersList input[type="checkbox"]:checked').forEach(checkbox => {
-      selectedUsers.push(checkbox.value);
-    });
-    
-    if (selectedUsers.length === 0) return alert('Select at least one member');
-    
-    socket.emit('create group', {
-      groupName,
-      members: selectedUsers
-    });
-    
-    createGroupModal.style.display = 'none';
-    groupNameInput.value = '';
+  // Silme butonu - Onay modalını aç
+  deleteGroupBtn.onclick = () => {
+    currentGroupToDelete = groupId;
+    groupDetailsModal.style.display = 'none';
+    deleteGroupConfirmModal.style.display = 'block';
   };
 
-  cancelGroupBtn.onclick = () => {
-    createGroupModal.style.display = 'none';
-  };
+  groupDetailsModal.style.display = 'block';
+}
+
+closeGroupDetailsBtn.onclick = () => {
+  groupDetailsModal.style.display = 'none';
+};
+
+// Gruptan ayrılma onay modalı event'leri
+confirmLeaveGroupBtn.onclick = () => {
+  if (currentGroupToLeave) {
+    socket.emit('leave group', { groupId: currentGroupToLeave });
+    groups.delete(currentGroupToLeave);
+    
+    if (activeChatId === currentGroupToLeave) {
+      activeChatId = null;
+      messagesList.innerHTML = '';
+      chatWith.textContent = 'Choose chat';
+      groupMenuBtn.style.display = 'none';
+    }
+    
+    renderUserAndGroupList();
+    leaveGroupConfirmModal.style.display = 'none';
+    currentGroupToLeave = null;
+  }
+};
+
+cancelLeaveGroupBtn.onclick = () => {
+  leaveGroupConfirmModal.style.display = 'none';
+  currentGroupToLeave = null;
+  // Grup detay modalını tekrar aç
+  if (activeChatId && activeChatId.startsWith('group_')) {
+    openGroupDetails(activeChatId);
+  }
+};
+
+// Grup silme onay modalı event'leri
+confirmDeleteGroupBtn.onclick = () => {
+  if (currentGroupToDelete) {
+    socket.emit('delete group', { groupId: currentGroupToDelete });
+    groups.delete(currentGroupToDelete);
+    
+    if (activeChatId === currentGroupToDelete) {
+      activeChatId = null;
+      messagesList.innerHTML = '';
+      chatWith.textContent = 'Choose chat';
+      groupMenuBtn.style.display = 'none';
+    }
+    
+    renderUserAndGroupList();
+    deleteGroupConfirmModal.style.display = 'none';
+    currentGroupToDelete = null;
+  }
+};
+
+cancelDeleteGroupBtn.onclick = () => {
+  deleteGroupConfirmModal.style.display = 'none';
+  currentGroupToDelete = null;
+  // Grup detay modalını tekrar aç
+  if (activeChatId && activeChatId.startsWith('group_')) {
+    openGroupDetails(activeChatId);
+  }
+};
+
+// Modal dışına tıklandığında kapat
+window.onclick = (event) => {
+  if (event.target === leaveGroupConfirmModal) {
+    leaveGroupConfirmModal.style.display = 'none';
+    currentGroupToLeave = null;
+    // Grup detay modalını tekrar aç
+    if (activeChatId && activeChatId.startsWith('group_')) {
+      openGroupDetails(activeChatId);
+    }
+  }
+  
+  if (event.target === deleteGroupConfirmModal) {
+    deleteGroupConfirmModal.style.display = 'none';
+    currentGroupToDelete = null;
+    // Grup detay modalını tekrar aç
+    if (activeChatId && activeChatId.startsWith('group_')) {
+      openGroupDetails(activeChatId);
+    }
+  }
+};
+
+// Sunucudan grup güncelleme ve silme olayları
+socket.on('group updated', ({ groupId, members }) => {
+  if (groups.has(groupId)) {
+    groups.get(groupId).members = members;
+    if (activeChatId === groupId) openGroupDetails(groupId);
+  }
+});
 </script>
 </body>
-</html> 
+</html>

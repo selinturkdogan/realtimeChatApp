@@ -1,4 +1,4 @@
-/* Tema değişkenleri */
+
 :root {
   /* Varsayılan tema (mevcut tasarım) */
   --bg-main: #fff5f7;
@@ -16,7 +16,7 @@
 }
 .theme-dark {
   --bg-main: #000000;          
-  --bg-accent: #43596a;       
+  --bg-accent: #212932;       
   --bg-secondary: #32404d;     
   --bg-sidebar: #212932;       
   --text-primary: #e8fdff;     
@@ -751,4 +751,193 @@ body {
 
 .theme-color.nature {
   background: linear-gradient(135deg, #18c22f 0%, #eae868 100%);
+}
+
+
+
+/* Modal arka planı */
+#groupInfoModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(3px);
+}
+
+/* Başlık */
+#groupInfoModal .modal-content h2 {
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary, #222);
+}
+
+/* Üye listesi */
+#groupMembersList {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 20px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+#groupMembersList li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  color: var(--text-secondary, #555);
+  font-size: 0.95rem;
+}
+
+/* Scrollbar uyumu */
+#groupMembersList::-webkit-scrollbar {
+  width: 6px;
+}
+#groupMembersList::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+#groupDetailsModal .modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  font-size: larger;
+}
+
+#groupDetailsModal .modal-content button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  width: 80%; 
+  max-width: 220px;
+  transition: background-color 0.3s ease;
+  margin: 8px 0; 
+  text-align: center;
+}
+
+/* Buton grupları için ekstra stil */
+#groupDetailsModal .button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 12px; 
+  margin-top: 20px;
+}
+
+#addUserBtn{
+   background: var(--warning-color, #c48798);
+  color: #fff;
+}
+
+#leaveGroupBtn {
+  background: var(--warning-color, #c48798);
+  color: #fff;
+}
+
+#deleteGroupBtn {
+  background: var(--danger-color, #c48798);
+  color: #fff;
+}
+
+#closeGroupDetailsBtn {
+  background: var(--neutral-color, #c48798);
+  color: #fff;
+}
+
+/* Hover */
+#groupInfoModal button:hover {
+  opacity: 0.9;
+}
+
+/* Fade-in animasyonu */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+}
+
+.modal-content.small {
+  width: 350px;
+  text-align: center;
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  width: 80%;
+  max-width: 220px;
+  transition: background-color 0.3s ease;
+  text-align: center;
+}
+
+.modal-buttons button.danger {
+  background-color: #c48798;
+  color: white;
+}
+
+.modal-buttons button.danger:hover {
+  background-color: #943654;
+}
+
+.modal-buttons button:not(.danger) {
+  background-color: #c48798;
+  color: white;
+}
+
+.modal-buttons button:not(.danger):hover {
+  background-color: #943654;
+}
+#groupMenuBtn {
+  position: absolute;
+  right: 30px;       
+  background-color: #ffbccc;
+  color: black;
+  font-size: 24px;    
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: none;
 }
