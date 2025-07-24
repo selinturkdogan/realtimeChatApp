@@ -14,7 +14,12 @@ const connectedUsers = new Map();
 const groups = new Map();
 
 function broadcastUserList() {
-  const users = Array.from(connectedUsers.entries()).map(([id, name]) => ({ id, name }));
+  const users = Array.from(connectedUsers.entries()).map(([id, name]) => ({ 
+    id, 
+    name: users.name,
+    avatarStyle: users.avatarStyle,
+    avatarSeed: users.avatarSeed
+  }));
   io.emit('user list', users);
 }
 

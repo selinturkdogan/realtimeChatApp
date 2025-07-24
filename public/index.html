@@ -352,7 +352,8 @@ themeOptions.forEach(option => {
         
         // Local storage'a kaydet 
         localStorage.setItem('selectedTheme', selectedTheme);
-
+        localStorage.setItem("avatarSeed", username);
+        localStorage.setItem("avatarStyle", avatarStyle);
     });
 });
 
@@ -541,12 +542,21 @@ confirmAddUserBtn.onclick = () => {
   const chatHistories = new Map();
 
   // Kullanıcı adı ile bağlanma
-  joinBtn.onclick = () => {
-    const name = nameInput.value.trim();
-    if (!name) return alert('Please enter a name.');
+joinBtn.onclick = () => {
+  const name = nameInput.value.trim();
+  if (!name) return alert('Please enter a name.');
+  if (!selectedAvatar) return alert('Please select an avatar.');
 
-    myName = name;
-    socket = io({ query: { name } });
+  const seed = getSeedFromAvatarUrl(selectedAvatar);
+  localStorage.setItem("avatarSeed", seed);
+  localStorage.setItem("avatarStyle", currentAvatarStyle);
+
+  myName = name;
+  socket = io({ query: { name } });
+
+  welcomeModal.style.display = 'none';
+  chatContainer.style.display = 'flex';
+
 
     welcomeModal.style.display = 'none';
     chatContainer.style.display = 'flex';
@@ -621,6 +631,16 @@ socket.on('group created', ({ groupId, groupName, members }) => {
       }
     });
   };
+  function getSeedFromAvatarUrl(url) {
+  try {
+    const params = new URL(url).searchParams;
+    return params.get('seed') || 'default';
+  } catch (err) {
+    console.error("Invalid avatar URL", url);
+    return 'default';
+  }
+}
+
 
   // Kullanıcı ve grup listesini gösterme
   function renderUserAndGroupList() {
