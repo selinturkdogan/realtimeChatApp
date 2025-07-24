@@ -14,21 +14,27 @@ const connectedUsers = new Map();
 const groups = new Map();
 
 function broadcastUserList() {
-  const users = Array.from(connectedUsers.entries()).map(([id, name]) => ({ 
+  const users = Array.from(connectedUsers.entries()).map(([id, user]) => ({ 
     id, 
-    name: users.name,
-    avatarStyle: users.avatarStyle,
-    avatarSeed: users.avatarSeed
+    name: user.name,
+    avatarStyle: user.avatarStyle,
+    avatarSeed: user.avatarSeed
   }));
   io.emit('user list', users);
 }
 
-io.on('connection', (socket) => { //yeni bir kullanıcı bağlandığında bu fonksiyon
-  const name = socket.handshake.query.name;
-  connectedUsers.set(socket.id, name); //kullanıcıyı connetcedUsers listesine ekler
+io.on('connection', (socket) => {
+  const { name, avatarStyle, avatarSeed } = socket.handshake.query; // ✅ tanımlanıyor
+
+  connectedUsers.set(socket.id, {
+    name,
+    avatarStyle,
+    avatarSeed
+  });
 
   console.log(`${name} connected`);
-  broadcastUserList(); //güncel listeyi herkese yollar
+  broadcastUserList();
+
 
 
 
@@ -73,23 +79,24 @@ io.on('connection', (socket) => { //yeni bir kullanıcı bağlandığında bu fo
 
   // Bireysel mesaj
   socket.on('private message', ({ to, text }) => {
-    const from = connectedUsers.get(socket.id);
-    const timestamp = new Date();
-    //alıcıya mesaj gönderilir
-    io.to(to).emit('private message', {
-      from,
-      text,
-      timestamp
-    });
+  const fromUser = connectedUsers.get(socket.id); // ← Burası eksikti
+  if (!fromUser) return; // Güvenlik kontrolü
+  
+  const timestamp = new Date();
 
-    socket.emit('private message', {
-      from,
-      text,
-      timestamp,
-      own: true //göndericiye aynı mesaj gönderilir
-    
-    });
+  io.to(to).emit('private message', {
+    from: fromUser.name,
+    text,
+    timestamp
   });
+
+  socket.emit('private message', {
+    from: fromUser.name,
+    text,
+    timestamp,
+    own: true
+  });
+});
 
   // Grup oluşturma
 // Grup oluşturma işlemi 

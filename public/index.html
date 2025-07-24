@@ -552,7 +552,15 @@ joinBtn.onclick = () => {
   localStorage.setItem("avatarStyle", currentAvatarStyle);
 
   myName = name;
-  socket = io({ query: { name } });
+socket = io({
+  query: {
+    name,
+    avatarStyle: currentAvatarStyle,
+    avatarSeed: getSeedFromAvatarUrl(selectedAvatar)
+  }
+});
+
+
 
   welcomeModal.style.display = 'none';
   chatContainer.style.display = 'flex';
