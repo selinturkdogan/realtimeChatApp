@@ -86,12 +86,16 @@ io.on('connection', (socket) => {
 
   io.to(to).emit('private message', {
     from: fromUser.name,
+    avatarStyle: fromUser.avatarStyle,
+    avatarSeed: fromUser.avatarSeed,
     text,
     timestamp
   });
 
   socket.emit('private message', {
     from: fromUser.name,
+    avatarStyle: fromUser.avatarStyle,
+    avatarSeed: fromUser.avatarSeed,
     text,
     timestamp,
     own: true
@@ -104,26 +108,28 @@ socket.on('create group', ({ groupName, members }, callback) => {
   try {
     const groupId = `group_${Date.now()}`;
     const creator = connectedUsers.get(socket.id);
-    
-    // Geçerli kullanıcıları filtrele
-    const validMembers = members.filter(member => 
-      [...connectedUsers.values()].includes(member)
+    if (!creator) throw new Error('Grubu oluşturan kullanıcı bulunamadı');
+
+    // Sadece geçerli bağlı kullanıcıları al
+    const validMembers = members.filter(member =>
+      [...connectedUsers.values()].some(user => user.name === member)
     );
-    
-    const allMembers = [...new Set([...validMembers, creator])];
-    
+
+    const allMembers = [...new Set([...validMembers, creator.name])];
+
     groups.set(groupId, {
       name: groupName,
       members: allMembers,
-      creator
+      creator: creator.name
     });
 
-    // Tüm üyelere bilgi gönder
-    allMembers.forEach(member => {
-      const memberSocket = [...connectedUsers.entries()]
-        .find(([id, n]) => n === member)?.[0];
-      if (memberSocket) {
-        io.to(memberSocket).emit('group created', {
+    // Tüm üyelere grubu bildir
+    allMembers.forEach(memberName => {
+      const memberSocketId = [...connectedUsers.entries()]
+        .find(([id, user]) => user.name === memberName)?.[0];
+
+      if (memberSocketId) {
+        io.to(memberSocketId).emit('group created', {
           groupId,
           groupName,
           members: allMembers
@@ -131,29 +137,52 @@ socket.on('create group', ({ groupName, members }, callback) => {
       }
     });
 
-    // Başarılı yanıt
     callback({ success: true, groupId });
+
   } catch (error) {
-    console.error('Grup oluşturma hatası:', error);
-    callback({ success: false, message: 'Grup oluşturulamadı' });
+    console.error('Grup oluşturma hatası:', error.message);
+    callback({ success: false, message: error.message });
   }
 });
+
+
 // Grup mesajı
 socket.on('group message', ({ groupId, text }) => {
   const group = groups.get(groupId);
   if (!group) return;
 
-  const from = connectedUsers.get(socket.id);
+  const fromUser = connectedUsers.get(socket.id);
+  if (!fromUser) return;
+
   const timestamp = new Date();
 
   group.members.forEach(member => {
     const memberSocket = [...connectedUsers.entries()]
-      .find(([id, n]) => n === member)?.[0];
-    if (memberSocket && memberSocket !== socket.id) { // gönderici hariç
-      io.to(memberSocket).emit('group message', { groupId, from, text, timestamp, own: false });
+      .find(([id, user]) => user.name === member)?.[0];
+
+    if (memberSocket && memberSocket !== socket.id) {
+      io.to(memberSocket).emit('group message', {
+        groupId,
+        from: fromUser.name, // 🔧 Burada sadece ad
+         avatarStyle: fromUser.avatarStyle,
+        avatarSeed: fromUser.avatarSeed,
+        text,
+        timestamp,
+        own: memberSocket === socket.id
+      });
     }
   });
+
+  // Göndericiye de kendi mesajını göster (opsiyonel ama tutarlılık için önerilir)
+  socket.emit('group message', {
+    groupId,
+    from: fromUser.name,
+    text,
+    timestamp,
+    own: true
+  });
 });
+
 // add users group 
 socket.on('add users to group', ({ groupId, users }) => {
     const group = groups.get(groupId);

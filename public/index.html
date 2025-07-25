@@ -552,14 +552,13 @@ joinBtn.onclick = () => {
   localStorage.setItem("avatarStyle", currentAvatarStyle);
 
   myName = name;
-socket = io({
+  socket = io({
   query: {
     name,
-    avatarStyle: currentAvatarStyle,
+     avatarStyle: currentAvatarStyle,
     avatarSeed: getSeedFromAvatarUrl(selectedAvatar)
   }
 });
-
 
 
   welcomeModal.style.display = 'none';
@@ -609,6 +608,8 @@ socket.on('group created', ({ groupId, groupName, members }) => {
 
     // Grup mesajı aldığında
     socket.on('group message', ({ groupId, from, text, timestamp, own }) => {
+      if (own) return;
+      
       if (!chatHistories.has(groupId)) chatHistories.set(groupId, []);
       chatHistories.get(groupId).push({ from, text, timestamp, own });
       
@@ -729,6 +730,7 @@ if (own) {
   style = "bottts"; // veya sen nasıl istiyorsan
   seed = from;
 }
+
 
 avatar.src = `https://api.dicebear.com/8.x/${style}/svg?seed=${encodeURIComponent(seed)}`;
 
